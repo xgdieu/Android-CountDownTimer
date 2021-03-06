@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">SimpleTimerApplication</string>
+    <string name="start_button">Start</string>
+    <string name="pause_button">Pause</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="resume_button">Resume</string>
+    <string name="close_button">Close</string>
+    <string name="finish_title">Warning</string>
+    <string name="finish_text">Time Out</string>
+
+</resources>
