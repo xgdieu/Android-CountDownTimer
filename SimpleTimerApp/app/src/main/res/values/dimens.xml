@@ -5,4 +5,6 @@
     <dimen name="text_size">35sp</dimen>
     <dimen name="button_height">48dp</dimen>
     <dimen name="button_margin">32dp</dimen>
+    <dimen name="progress_layout_width">400dp</dimen>
+    <dimen name="progress_layout_height">400dp</dimen>
 </resources>

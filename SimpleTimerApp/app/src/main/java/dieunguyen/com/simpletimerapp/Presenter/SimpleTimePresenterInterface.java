@@ -5,7 +5,7 @@ package dieunguyen.com.simpletimerapp.Presenter;
  */
 
 public interface SimpleTimePresenterInterface {
-    void pauseButtonClicked();
+    void pauseButtonClicked(String hours, String minutes, String seconds);
 
     void cancelButtonClicked();
 }

@@ -9,23 +9,24 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import dieunguyen.com.simpletimerapp.Model.TimeModel;
 import dieunguyen.com.simpletimerapp.Model.TimeModel.TimeStatus;
 import dieunguyen.com.simpletimerapp.Presenter.SimpleTimePresenter;
 import dieunguyen.com.simpletimerapp.Presenter.SimpleTimePresenterInterface;
 import dieunguyen.com.simpletimerapp.R;
 
 public class SimpleTimerActivity extends AppCompatActivity implements SimpleTimerInterface {
-
-    @BindView(R.id.txt_time)
-    public TextView mTimeTextView;
 
     @BindView(R.id.bt_pause)
     public Button mPauseButton;
@@ -36,10 +37,16 @@ public class SimpleTimerActivity extends AppCompatActivity implements SimpleTime
     @BindView(R.id.progress_time)
     public ProgressBar mProgressBar;
 
+    @BindView(R.id.edit_hours)
+    public EditText mEditHours;
+
+    @BindView(R.id.edit_minutes)
+    public EditText mEditMinutes;
+
+    @BindView(R.id.edit_seconds)
+    public EditText mEditSeconds;
+
     private SimpleTimePresenterInterface mPresenter;
-    private int mHours = 0;
-    private int mMinutes = 0;
-    private int mSeconds = 20;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +71,11 @@ public class SimpleTimerActivity extends AppCompatActivity implements SimpleTime
             return;
         }
 
-        mPresenter.pauseButtonClicked();
+        String hours = mEditHours.getText().toString();
+        String minutes = mEditMinutes.getText().toString();
+        String seconds = mEditSeconds.getText().toString();
+
+        mPresenter.pauseButtonClicked(hours, minutes, seconds);
     }
 
 
@@ -77,10 +88,8 @@ public class SimpleTimerActivity extends AppCompatActivity implements SimpleTime
 
     @Override
     public void updatePauseTitleButton(TimeStatus status) {
-        if (status == null) {
-            return;
-        }
-        String textButton = getString(R.string.pause_button);
+        String textButton = getString(R.string.start_button);
+
         switch (status) {
             case RUNNING:
                 textButton = getString(R.string.pause_button);
@@ -101,8 +110,32 @@ public class SimpleTimerActivity extends AppCompatActivity implements SimpleTime
     }
 
     @Override
-    public void updateTimeText(String strTime) {
-        mTimeTextView.setText(strTime);
+    public void updateHoursText(String hours) {
+        mEditHours.setText(hours);
+    }
+
+    @Override
+    public void updateMinutesText(String minutes) {
+        mEditMinutes.setText(minutes);
+    }
+
+    @Override
+    public void updateSecondText(String seconds) {
+        mEditSeconds.setText(seconds);
+    }
+
+    @Override
+    public void updateEnableInputTimeIfNeed(TimeStatus status) {
+        Log.d("ndieu","status      "+status.name());
+        switch (status) {
+            case STOP:
+                setEnableInputTime();
+                break;
+
+            default:
+                setDisableInputTime();
+                break;
+        }
     }
 
     @Override
@@ -113,10 +146,64 @@ public class SimpleTimerActivity extends AppCompatActivity implements SimpleTime
     private void configure() {
         int maxPercent = 100;
         mProgressBar.setMax(maxPercent);
-        mProgressBar.setProgress(maxPercent);
+        mProgressBar.setProgress(0);
 
-        TimeModel model = new TimeModel(mHours, mMinutes, mSeconds);
-        mPresenter = new SimpleTimePresenter(this, model);
+        mPauseButton.setText(getString(R.string.start_button));
+
+        mPresenter = new SimpleTimePresenter(this);
+
+        configureValidInputData();
+
+        setEnableInputTime();
+    }
+
+    private void configureValidInputData() {
+        final int maxMinute = 60;
+        final int maxSecond = 60;
+
+        mEditMinutes.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (TextUtils.isEmpty(s)) {
+                    return;
+                }
+                if (!validationTimeInput(Integer.parseInt(s.toString()), maxMinute)) {
+                    mEditMinutes.setText(maxMinute + "");
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        mEditSeconds.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (TextUtils.isEmpty(s)) {
+                    return;
+                }
+                if (!validationTimeInput(Integer.parseInt(s.toString()), maxSecond)) {
+                    mEditSeconds.setText(maxSecond + "");
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
     }
 
     private void displayFinishDialog() {
@@ -138,12 +225,32 @@ public class SimpleTimerActivity extends AppCompatActivity implements SimpleTime
 
     private void playSound() {
         Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-        r.play();
+        Ringtone ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
+        ringtone.play();
     }
 
     private void playVibration() {
-        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        v.vibrate(400);
+        Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        vibrator.vibrate(400);
+    }
+
+    private boolean validationTimeInput(int input, int limit) {
+        if (input > limit) {
+            Toast.makeText(this, "Input data invalid, max values is " + limit, Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
+    }
+
+    private void setEnableInputTime() {
+        mEditHours.setEnabled(true);
+        mEditMinutes.setEnabled(true);
+        mEditSeconds.setEnabled(true);
+    }
+
+    private void setDisableInputTime() {
+        mEditHours.setEnabled(false);
+        mEditMinutes.setEnabled(false);
+        mEditSeconds.setEnabled(false);
     }
 }

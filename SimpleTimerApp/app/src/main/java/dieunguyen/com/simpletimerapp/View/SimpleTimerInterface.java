@@ -11,7 +11,13 @@ public interface SimpleTimerInterface {
 
     void updatePauseTitleButton(TimeStatus status);
 
-    void updateTimeText(String strTime);
-
     void updateProgress(int percent);
+
+    void updateHoursText(String hours);
+
+    void updateMinutesText(String minutes);
+
+    void updateSecondText(String seconds);
+
+    void updateEnableInputTimeIfNeed(TimeStatus status);
 }

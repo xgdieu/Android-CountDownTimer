@@ -16,8 +16,8 @@ public class TimeModel {
     private int mSeconds;
     private TimeStatus mStatus = TimeStatus.STOP;
 
-    public TimeModel(int time, int minutes, int seconds) {
-        mHours = time;
+    public TimeModel(int hours, int minutes, int seconds) {
+        mHours = hours;
         mMinutes = minutes;
         mSeconds = seconds;
     }
