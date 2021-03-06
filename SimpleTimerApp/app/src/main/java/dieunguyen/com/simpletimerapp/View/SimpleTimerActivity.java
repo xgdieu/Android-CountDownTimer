@@ -12,7 +12,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -126,7 +125,6 @@ public class SimpleTimerActivity extends AppCompatActivity implements SimpleTime
 
     @Override
     public void updateEnableInputTimeIfNeed(TimeStatus status) {
-        Log.d("ndieu","status      "+status.name());
         switch (status) {
             case STOP:
                 setEnableInputTime();
@@ -206,6 +204,26 @@ public class SimpleTimerActivity extends AppCompatActivity implements SimpleTime
         });
     }
 
+    private boolean validationTimeInput(int input, int limit) {
+        if (input > limit) {
+            Toast.makeText(this, "Input data invalid, max values is " + limit, Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
+    }
+
+    private void setEnableInputTime() {
+        mEditHours.setEnabled(true);
+        mEditMinutes.setEnabled(true);
+        mEditSeconds.setEnabled(true);
+    }
+
+    private void setDisableInputTime() {
+        mEditHours.setEnabled(false);
+        mEditMinutes.setEnabled(false);
+        mEditSeconds.setEnabled(false);
+    }
+
     private void displayFinishDialog() {
         AlertDialog.Builder finishDialog = new AlertDialog.Builder(this);
         finishDialog.setMessage(getString(R.string.finish_text));
@@ -234,23 +252,4 @@ public class SimpleTimerActivity extends AppCompatActivity implements SimpleTime
         vibrator.vibrate(400);
     }
 
-    private boolean validationTimeInput(int input, int limit) {
-        if (input > limit) {
-            Toast.makeText(this, "Input data invalid, max values is " + limit, Toast.LENGTH_SHORT).show();
-            return false;
-        }
-        return true;
-    }
-
-    private void setEnableInputTime() {
-        mEditHours.setEnabled(true);
-        mEditMinutes.setEnabled(true);
-        mEditSeconds.setEnabled(true);
-    }
-
-    private void setDisableInputTime() {
-        mEditHours.setEnabled(false);
-        mEditMinutes.setEnabled(false);
-        mEditSeconds.setEnabled(false);
-    }
 }
