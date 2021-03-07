@@ -84,6 +84,11 @@ public class SimpleTimePresenter implements SimpleTimePresenterInterface {
         resetTime();
     }
 
+    @Override
+    public long getCurrentCountDown() {
+        return mCountDownTime * MILLISECOND;
+    }
+
     private void setTimeModel(TimeModel model) {
         mModel = model;
         mLimitTime = convertTimeToSeconds(model.getHours(), model.getMinutes(), model.getSeconds());
@@ -152,9 +157,12 @@ public class SimpleTimePresenter implements SimpleTimePresenterInterface {
             return;
         }
 
-        mModel.setStatus(TimeStatus.STOP);
+        TimeStatus status = TimeStatus.STOP;
+        mModel.setStatus(status);
+        mView.updateEnableInputTimeIfNeed(status);
+        mView.updatePauseTitleButton(status);
+
         mView.notifyFinishCountDown();
-        mView.updatePauseTitleButton(mModel.getStatus());
     }
 
     private long convertTimeToSeconds(int hours, int minutes, int seconds) {

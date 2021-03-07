@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="dieunguyen.com.simpletimerapp">
+
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <application
         android:allowBackup="true"
@@ -16,6 +18,18 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <service
+            android:name="dieunguyen.com.simpletimerapp.Presenter.TimerService"
+            android:enabled="true"
+            android:exported="true"
+            android:stopWithTask="false">
+        </service>
+        <receiver
+            android:name=".Presenter.TimeBroadcastReceive"
+            android:enabled="true"
+            android:exported="true">
+        </receiver>
     </application>
+
 
 </manifest>

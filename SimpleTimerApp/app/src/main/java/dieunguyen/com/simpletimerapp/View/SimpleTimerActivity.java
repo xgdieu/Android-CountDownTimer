@@ -1,11 +1,17 @@
 package dieunguyen.com.simpletimerapp.View;
 
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.Vibrator;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -23,6 +29,9 @@ import butterknife.OnClick;
 import dieunguyen.com.simpletimerapp.Model.TimeModel.TimeStatus;
 import dieunguyen.com.simpletimerapp.Presenter.SimpleTimePresenter;
 import dieunguyen.com.simpletimerapp.Presenter.SimpleTimePresenterInterface;
+import dieunguyen.com.simpletimerapp.Presenter.TimeBroadcastReceive;
+import dieunguyen.com.simpletimerapp.Presenter.TimerService;
+import dieunguyen.com.simpletimerapp.Presenter.TimerService.MyBinder;
 import dieunguyen.com.simpletimerapp.R;
 
 public class SimpleTimerActivity extends AppCompatActivity implements SimpleTimerInterface {
@@ -47,6 +56,10 @@ public class SimpleTimerActivity extends AppCompatActivity implements SimpleTime
 
     private SimpleTimePresenterInterface mPresenter;
 
+    private Intent mServiceIntent;
+    private TimerService mService;
+    private BroadcastReceiver mBroadcastReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,6 +67,54 @@ public class SimpleTimerActivity extends AppCompatActivity implements SimpleTime
         ButterKnife.bind(this);
 
         configure();
+
+        startService(mServiceIntent);
+        bindService(mServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mService = ((MyBinder) service).getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mService = null;
+        }
+    };
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        registerReceiver(mBroadcastReceiver, new IntentFilter(TimerService.COUNTDOWN_BR));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        unregisterReceiver(mBroadcastReceiver);
+    }
+
+    @Override
+    public void onStop() {
+        try {
+            unregisterReceiver(mBroadcastReceiver);
+        } catch (Exception e) {
+            // Receiver was probably already stopped in onPause()
+        }
+        super.onStop();
+    }
+
+    @Override
+    public void onDestroy() {
+        mService.setTime(mPresenter.getCurrentCountDown());
+        unbindService(mServiceConnection);
+        stopService(mServiceIntent);
+
+        super.onDestroy();
     }
 
     @OnClick(R.id.bt_cancel)
@@ -153,6 +214,10 @@ public class SimpleTimerActivity extends AppCompatActivity implements SimpleTime
         configureValidInputData();
 
         setEnableInputTime();
+
+        configureValidInputData();
+
+        configureTimeService();
     }
 
     private void configureValidInputData() {
@@ -170,7 +235,7 @@ public class SimpleTimerActivity extends AppCompatActivity implements SimpleTime
                 if (TextUtils.isEmpty(s)) {
                     return;
                 }
-                if (!validationTimeInput(Integer.parseInt(s.toString()), maxMinute)) {
+                if (!validTimeInput(Integer.parseInt(s.toString()), maxMinute)) {
                     mEditMinutes.setText(maxMinute + "");
                 }
             }
@@ -192,7 +257,7 @@ public class SimpleTimerActivity extends AppCompatActivity implements SimpleTime
                 if (TextUtils.isEmpty(s)) {
                     return;
                 }
-                if (!validationTimeInput(Integer.parseInt(s.toString()), maxSecond)) {
+                if (!validTimeInput(Integer.parseInt(s.toString()), maxSecond)) {
                     mEditSeconds.setText(maxSecond + "");
                 }
             }
@@ -204,7 +269,12 @@ public class SimpleTimerActivity extends AppCompatActivity implements SimpleTime
         });
     }
 
-    private boolean validationTimeInput(int input, int limit) {
+    private void configureTimeService() {
+        mBroadcastReceiver = new TimeBroadcastReceive();
+        mServiceIntent = new Intent(getApplicationContext(), TimerService.class);
+    }
+
+    private boolean validTimeInput(int input, int limit) {
         if (input > limit) {
             Toast.makeText(this, "Input data invalid, max values is " + limit, Toast.LENGTH_SHORT).show();
             return false;

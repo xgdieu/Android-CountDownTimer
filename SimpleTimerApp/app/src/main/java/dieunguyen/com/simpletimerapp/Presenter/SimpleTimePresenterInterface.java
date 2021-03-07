@@ -8,4 +8,6 @@ public interface SimpleTimePresenterInterface {
     void pauseButtonClicked(String hours, String minutes, String seconds);
 
     void cancelButtonClicked();
+
+    long getCurrentCountDown();
 }
